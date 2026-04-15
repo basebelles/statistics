@@ -27,7 +27,8 @@ def run_pipeline(
     state_path: Path,
     artifacts_dir: Path,
     skip_llm: bool,
-    openai_model: str | None,
+    llm_model: str | None,
+    force: bool = False,
 ) -> RunResult:
     raw = pipeline.fetch_raw(start_date, end_date)
     normalized = pipeline.normalize(raw)
@@ -38,10 +39,10 @@ def run_pipeline(
     wrote = 0
     for ev in events:
         key = ev.emission_key
-        if not state.should_emit(key):
+        if not force and not state.should_emit(key):
             continue
         text = pipeline.summarize(
-            ev, skip_llm=skip_llm, openai_model=openai_model
+            ev, skip_llm=skip_llm, llm_model=llm_model
         )
         path = pipeline.write_artifact(ev, text, artifacts_dir)
         state.record(key)

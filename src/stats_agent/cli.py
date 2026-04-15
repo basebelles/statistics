@@ -7,6 +7,8 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Register built-in pipelines (add more imports as you add modules).
 import umpscorecards.pipeline  # noqa: F401
 
@@ -21,6 +23,8 @@ def _default_dates(days: int) -> tuple[str, str]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Load `.env` from the current working directory (does not override existing env vars).
+    load_dotenv()
     argv = argv if argv is not None else sys.argv[1:]
     ids = sorted(list_pipelines().keys())
     default_id = "guardians-umpscorecards"
@@ -57,12 +61,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument(
         "--skip-llm",
         action="store_true",
-        help="Use template text instead of OpenAI",
+        help="Use template text instead of Gemini",
     )
     p.add_argument(
-        "--openai-model",
+        "--model",
+        dest="llm_model",
         default=None,
-        help="Override OPENAI_MODEL (default gpt-4o)",
+        help="Override GEMINI_MODEL (default: gemini-2.5-flash)",
+    )
+    p.add_argument(
+        "--force",
+        action="store_true",
+        help="Ignore dedupe state and rewrite summaries for all events in this window",
     )
     args = p.parse_args(argv)
 
@@ -84,12 +94,14 @@ def main(argv: list[str] | None = None) -> int:
         state_path=state_path,
         artifacts_dir=artifacts_dir,
         skip_llm=args.skip_llm,
-        openai_model=args.openai_model,
+        llm_model=args.llm_model,
+        force=args.force,
     )
+    action = "rebuilt" if args.force else "new"
     print(
         f"[{pipeline.id}] {result.start_date} .. {result.end_date}: "
         f"{result.row_count} rows, {result.event_count} event(s) in window, "
-        f"{result.new_artifacts} new artifact(s)."
+        f"{result.new_artifacts} {action} artifact(s)."
     )
     return 0
 

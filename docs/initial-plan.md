@@ -98,7 +98,7 @@ flowchart LR
 - **Python 3.11+**, **`pybaseballstats`** (Polars in; **`pandas`** after `.to_pandas()` for the rest of the pipeline if desired).
 - **`pandas`** for manipulation (optional: stay in Polars until the LLM boundary—pick one stack for simplicity).
 - **Playwright:** optional dev-only contingency—not required for CI if `game_data` remains stable.
-- **LLM:** `openai` or `anthropic` SDK; one provider in v1.
+- **LLM:** Google **Gemini** via the `google-genai` SDK (`GEMINI_API_KEY`).
 - **Automation:** **GitHub Actions** `schedule` + manual `workflow_dispatch`; document local **cron** as alternative.
 - **Config:** `.env` / GitHub Secrets for API keys; no keys in repo.
 
@@ -153,5 +153,6 @@ This section records how the living code maps to the plan.
 - **API column names:** `pybaseballstats` returns `home_team`, `away_team`, and `favor` (home-team run expectancy favor), not `Home` / `Away` / `Favor (Home)`. Semantics match §2.2.
 - **Fetch filter:** `game_data(..., focus_team=UmpireScorecardTeams.GAURDIANS)` reduces payload size (enum spelling in the library is `GAURDIANS`).
 - **Dependencies:** `pyarrow` is required for Polars → pandas conversion in typical environments.
-- **CLI:** `guardians-umpscorecards` or `python -m umpscorecards`; without `OPENAI_API_KEY`, summaries use a short deterministic template.
-- **CI:** `.github/workflows/umpscorecards.yml` caches `state/state.json` and uploads generated Markdown as workflow artifacts.
+- **LLM runtime:** `google-genai` (`from google import genai`), model default `gemini-2.5-flash`, env `GEMINI_MODEL` / CLI `--model`.
+- **CLI:** `guardians-umpscorecards` or `python -m umpscorecards`; without `GEMINI_API_KEY`, summaries use a short deterministic template.
+- **CI:** `.github/workflows/umpscorecards.yml` caches `state/guardians-umpscorecards.json` and uploads generated Markdown as workflow artifacts.

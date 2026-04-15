@@ -59,7 +59,7 @@ class StatPipeline(Protocol):
         event: Emittable,
         *,
         skip_llm: bool,
-        openai_model: str | None,
+        llm_model: str | None,
     ) -> str:
         """Produce short text (LLM or template)."""
         ...
