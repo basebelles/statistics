@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "guardians-umpscorecards"
+version = "0.1.0"
+description = "Pluggable stat pipelines (UmpScorecards today; batting/pitching-ready)."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pybaseballstats>=0.4.7,<0.5",
+  "pandas>=2.0",
+  "pyarrow>=14.0",
+  "openai>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+guardians-umpscorecards = "stats_agent.cli:main"
+stat-monitor = "stats_agent.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
