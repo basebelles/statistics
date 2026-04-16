@@ -9,6 +9,20 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from umpscorecards.series import CompletedSeries
 
+_DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+
+
+def _resolve_gemini_model(model: str | None) -> str:
+    """CLI ``--model`` or ``GEMINI_MODEL``; treat empty string as unset.
+
+    GitHub Actions often sets ``GEMINI_MODEL: ${{ vars.FOO }}`` which yields ``""``
+    when the var is missing, and ``dict.get(..., default)`` does not apply.
+    """
+    if model is not None and str(model).strip():
+        return str(model).strip()
+    env = (os.environ.get("GEMINI_MODEL") or "").strip()
+    return env or _DEFAULT_GEMINI_MODEL
+
 
 def build_prompt(stats: dict) -> str:
     total = stats["total_cle_favor"]
@@ -41,7 +55,7 @@ def summarize_series_gemini(series: CompletedSeries, *, model: str | None = None
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY is not set")
 
-    m = model or os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+    m = _resolve_gemini_model(model)
     client = genai.Client(api_key=api_key)
     prompt = build_prompt(series.to_llm_context())
     strict = os.environ.get("GEMINI_STRICT", "").lower() in ("1", "true", "yes")
