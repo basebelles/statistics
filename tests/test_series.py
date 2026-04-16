@@ -32,7 +32,7 @@ def test_single_opponent_window_no_completed():
     assert find_completed_series(norm) == []
 
 
-def test_completed_series_prompt_dict():
+def test_completed_series_llm_context():
     raw = pd.read_csv("tests/fixtures/sample_cle_games.csv")
     norm = normalize_guardians_frame(raw)
     completed = find_completed_series(norm)

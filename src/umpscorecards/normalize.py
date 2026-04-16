@@ -38,5 +38,5 @@ def normalize_guardians_frame(df: pd.DataFrame) -> pd.DataFrame:
     mask = (df["home_team"] == GUARDIANS) | (df["away_team"] == GUARDIANS)
     out = df.loc[mask].copy()
     out = add_opponent_and_cle_favor(out)
-    out = out.sort_values(["date", "game_pk"], kind="mergesort").reset_index(drop=True)
+    out = out.sort_values(["date", "game_pk"], kind="stable").reset_index(drop=True)
     return out

@@ -12,16 +12,28 @@ class RunState:
     # JSON field name kept for backward compatibility with older state files.
     emitted_series_keys: list[str]
 
+    def __post_init__(self) -> None:
+        # Cache of emitted_series_keys; not a dataclass field so asdict/save_state stay JSON-safe.
+        self._seen: set[str] | None = None
+
     @classmethod
     def empty(cls) -> RunState:
         return cls(emitted_series_keys=[])
 
+    def _ensure_seen(self) -> set[str]:
+        if self._seen is None:
+            self._seen = set(self.emitted_series_keys)
+        return self._seen
+
     def should_emit(self, key: str) -> bool:
-        return key not in set(self.emitted_series_keys)
+        return key not in self._ensure_seen()
 
     def record(self, key: str) -> None:
-        if key not in self.emitted_series_keys:
-            self.emitted_series_keys.append(key)
+        seen = self._ensure_seen()
+        if key in seen:
+            return
+        self.emitted_series_keys.append(key)
+        seen.add(key)
 
 
 def load_state(path: Path) -> RunState:
