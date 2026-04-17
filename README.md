@@ -34,6 +34,8 @@ stat-monitor --start-date 2026-04-01 --end-date 2026-04-15
 ```
 
 - **`GEMINI_API_KEY`:** if set, calls Gemini (`gemini-2.5-flash` or `GEMINI_MODEL`). If unset, uses a deterministic template.
+- **`GEMINI_INTER_REQUEST_DELAY_SEC`:** optional seconds to **sleep after each** LLM-backed artifact (default `0`) to reduce burst traffic on first runs. **`--gemini-inter-request-delay SEC`** overrides this when passed.
+- **`GEMINI_MAX_RETRIES`:** how many **extra** attempts to make after a **429** or **503** from Gemini (default `3`, so up to **four** `generate_content` calls per series before falling back).
 - **`--skip-llm`:** always use the template.
 - **`--model`:** override the Gemini model (same as `GEMINI_MODEL`).
 - **`--pipeline ID`:** choose a registered pipeline (see below).
@@ -41,9 +43,9 @@ stat-monitor --start-date 2026-04-01 --end-date 2026-04-15
 
 ### Gemini quota and HTTP 429
 
-If the API returns **429 RESOURCE_EXHAUSTED** (free-tier quota, rate limits, or billing), the tool **prints a warning to stderr** and **uses the template summary** for that series so the run still finishes. To **force a hard failure** on API errors instead, set **`GEMINI_STRICT=1`**.
+If the API returns **429 RESOURCE_EXHAUSTED** (free-tier quota, rate limits, or billing) or **503** after retries, the tool **prints a warning to stderr** and **uses the template summary** for that series so the run still finishes. To **fail without template fallback** on API errors instead, set **`GEMINI_STRICT=1`** (retries still run first).
 
-To avoid quota issues: use **`--skip-llm`**, try another model (**`--model gemini-2.0-flash`**, etc.), enable billing in Google AI Studio, or see [Gemini rate limits](https://ai.google.dev/gemini-api/docs/rate-limits).
+To avoid quota issues: use **`--skip-llm`**, add a small **`GEMINI_INTER_REQUEST_DELAY_SEC`** or **`--gemini-inter-request-delay`** on large backfills, try another model (**`--model gemini-2.0-flash`**, etc.), enable billing in Google AI Studio, or see [Gemini rate limits](https://ai.google.dev/gemini-api/docs/rate-limits).
 
 ### Adding another pipeline (batting, pitching, …)
 

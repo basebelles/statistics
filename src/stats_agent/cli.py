@@ -74,6 +74,17 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Ignore dedupe state and rewrite summaries for all events in this window",
     )
+    p.add_argument(
+        "--gemini-inter-request-delay",
+        type=float,
+        default=None,
+        metavar="SEC",
+        dest="gemini_inter_request_delay",
+        help=(
+            "Seconds to sleep after each LLM-backed artifact (default: 0; "
+            "overrides GEMINI_INTER_REQUEST_DELAY_SEC when set)"
+        ),
+    )
     args = p.parse_args(argv)
 
     if args.start_date and args.end_date:
@@ -96,6 +107,7 @@ def main(argv: list[str] | None = None) -> int:
         skip_llm=args.skip_llm,
         llm_model=args.llm_model,
         force=args.force,
+        gemini_inter_request_delay_sec=args.gemini_inter_request_delay,
     )
     action = "rebuilt" if args.force else "new"
     print(

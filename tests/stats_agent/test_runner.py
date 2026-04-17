@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
+import pytest
 
 from stats_agent.core.runner import run_pipeline
 
@@ -77,3 +79,26 @@ def test_force_rewrites_despite_state(tmp_path: Path) -> None:
     assert r.new_artifacts == 2
     assert (art / "key-a.md").exists()
     assert (art / "key-b.md").exists()
+
+
+@patch("stats_agent.core.runner.time.sleep")
+def test_runner_sleeps_between_llm_artifacts_when_delay_configured(
+    mock_sleep: MagicMock, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("GEMINI_API_KEY", "x")
+    state = tmp_path / "s.json"
+    art = tmp_path / "out"
+    p = _FakePipeline()
+    run_pipeline(
+        p,
+        start_date="2026-01-01",
+        end_date="2026-01-31",
+        state_path=state,
+        artifacts_dir=art,
+        skip_llm=False,
+        llm_model=None,
+        force=True,
+        gemini_inter_request_delay_sec=0.05,
+    )
+    assert mock_sleep.call_count == 2
+    assert mock_sleep.call_args_list[0][0][0] == 0.05
